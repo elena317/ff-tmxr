@@ -1,7 +1,7 @@
 import math
 import random
 from pathlib import Path
-from tatermaxxer_optimizer import OptimizerConfig, optimize
+from tatermaxxer_engine_v5 import OptimizerConfig, optimize
 
 SOURCE = Path('/mnt/data/circular_rectangle_optimizer_v4.0.py').read_text()
 lines = SOURCE.splitlines()
