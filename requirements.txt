@@ -1,1 +1,5 @@
-streamlit numpy matplotlib plotly kaleido
+streamlit
+numpy
+matplotlib
+plotly
+kaleido
