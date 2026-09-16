@@ -107,11 +107,10 @@ with input_col:
             "Minimum clearance from vessel wall (in)",
             min_value=0.0, value=0.40, step=0.05
         )
-
-    heater_height = st.number_input(
-        "Height of internal heater plus clearance (in)",
-        min_value=0.0, value=5.00, step=0.25
-    )
+        heater_height = st.number_input(
+            "Height of internal heater plus clearance (in)",
+            min_value=0.0, value=5.00, step=0.25
+        )
 
     if "bag_length_saved" not in st.session_state:
         st.session_state["bag_length_saved"] = 16.0
