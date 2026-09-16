@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.patches import Circle, Rectangle
-from tatermaxxer_engine_v5 import OptimizerConfig, optimize as run_optimizer
-from tatermaxxer_engine_v6 import TrayOptimizerConfig, optimize_trays
+from tatermaxxer_basketengine_v5 import OptimizerConfig, optimize as run_optimizer
+from tatermaxxer_trayengine_v6 import TrayOptimizerConfig, optimize_trays
 
 # Kaleido is a project dependency for optional Plotly 3D image export.
 # If it is missing from the active Python environment, install it once at startup.
