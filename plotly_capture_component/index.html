@@ -42,6 +42,38 @@
     async function renderAndCapture(args) {
       const sequence = ++renderSequence;
       const captureId = args.capture_id;
+
+      if (args.operation) {
+        try {
+          const storageKey = String(args.storage_key || "tatermaxxer-default-preset");
+          if (args.operation === "save_preset") {
+            localStorage.setItem(storageKey, JSON.stringify(args.preset));
+            setValue({ command_id: args.command_id, operation: args.operation, ok: true });
+          } else if (args.operation === "load_preset") {
+            const stored = localStorage.getItem(storageKey);
+            setValue({
+              command_id: args.command_id,
+              operation: args.operation,
+              ok: true,
+              preset: stored ? JSON.parse(stored) : null,
+            });
+          } else if (args.operation === "clear_preset") {
+            localStorage.removeItem(storageKey);
+            setValue({ command_id: args.command_id, operation: args.operation, ok: true });
+          } else {
+            throw new Error(`Unknown browser-storage operation: ${args.operation}`);
+          }
+        } catch (error) {
+          setValue({
+            command_id: args.command_id,
+            operation: args.operation,
+            ok: false,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+        return;
+      }
+
       const width = Number(args.export_width || 1400);
       const height = Number(args.export_height || 800);
       const scale = Number(args.export_scale || 1);
