@@ -1176,6 +1176,13 @@ if browser_command:
             st.session_state["_preset_notice_error"] = (
                 "No defaults have been saved in this browser yet."
             )
+    elif not browser_command.get("automatic"):
+        action_text = {
+            "save_preset": "Saving defaults in this browser…",
+            "load_preset": "Restoring defaults from this browser…",
+            "clear_preset": "Clearing saved browser defaults…",
+        }.get(browser_command["operation"], "Updating browser defaults…")
+        st.info(action_text)
 
 if st.session_state.get("_preset_notice_success"):
     st.success(st.session_state.pop("_preset_notice_success"))
