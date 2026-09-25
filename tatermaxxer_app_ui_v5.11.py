@@ -4,24 +4,18 @@ import io
 import json
 import base64
 import textwrap
-from pathlib import Path
 import numpy as np
 import streamlit as st
-import streamlit.components.v1 as components
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.patches import Circle, Rectangle
 from tatermaxxer_basketengine_v5 import OptimizerConfig, optimize as run_optimizer
+from tatermaxxer_plotly_capture import plotly_capture
 
 st.set_page_config(page_title="Tatermaxxer", layout="wide")
 
 st.title("Tatermaxxer v5.11")
-
-plotly_capture = components.declare_component(
-    "tatermaxxer_plotly_capture",
-    path=str(Path(__file__).with_name("plotly_capture_component")),
-)
 
 
 # ----------------------------
