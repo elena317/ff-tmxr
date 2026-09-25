@@ -24,6 +24,11 @@
   <script>
     const plotElement = document.getElementById("capture-plot");
     let renderSequence = 0;
+    const pageToken = (
+      window.crypto && window.crypto.randomUUID
+        ? window.crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`
+    );
 
     function send(type, extra = {}) {
       window.parent.postMessage(
@@ -48,18 +53,19 @@
           const storageKey = String(args.storage_key || "tatermaxxer-default-preset");
           if (args.operation === "save_preset") {
             localStorage.setItem(storageKey, JSON.stringify(args.preset));
-            setValue({ command_id: args.command_id, operation: args.operation, ok: true });
+            setValue({ command_id: args.command_id, operation: args.operation, ok: true, page_token: pageToken });
           } else if (args.operation === "load_preset") {
             const stored = localStorage.getItem(storageKey);
             setValue({
               command_id: args.command_id,
               operation: args.operation,
               ok: true,
+              page_token: pageToken,
               preset: stored ? JSON.parse(stored) : null,
             });
           } else if (args.operation === "clear_preset") {
             localStorage.removeItem(storageKey);
-            setValue({ command_id: args.command_id, operation: args.operation, ok: true });
+            setValue({ command_id: args.command_id, operation: args.operation, ok: true, page_token: pageToken });
           } else {
             throw new Error(`Unknown browser-storage operation: ${args.operation}`);
           }
@@ -68,6 +74,7 @@
             command_id: args.command_id,
             operation: args.operation,
             ok: false,
+            page_token: pageToken,
             error: error instanceof Error ? error.message : String(error),
           });
         }

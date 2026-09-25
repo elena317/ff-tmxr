@@ -1120,23 +1120,19 @@ with clear_col:
             "command_id": next_preset_command_id(),
         }
 
-# Check this browser once per Streamlit session and automatically restore its
-# saved defaults when present.
-if not st.session_state.get("_browser_defaults_checked"):
-    st.session_state["_browser_defaults_checked"] = True
-    st.session_state["_browser_preset_command"] = {
-        "operation": "load_preset",
-        "command_id": next_preset_command_id(),
-        "automatic": True,
-    }
-
-browser_command = st.session_state.get("_browser_preset_command")
+explicit_browser_command = st.session_state.get("_browser_preset_command")
+browser_command = explicit_browser_command or {
+    "operation": "load_preset",
+    "command_id": "automatic-page-load",
+    "automatic": True,
+}
 if browser_command:
     browser_result = plotly_capture(
         operation=browser_command["operation"],
         command_id=browser_command["command_id"],
         preset=browser_command.get("preset"),
         storage_key="tatermaxxer-v5-user-default",
+        known_page_token=st.session_state.get("_browser_page_token"),
         key="tatermaxxer_browser_preset_storage",
         default=None,
         height=1,
@@ -1145,7 +1141,15 @@ if browser_command:
         isinstance(browser_result, dict)
         and browser_result.get("command_id") == browser_command["command_id"]
     ):
-        st.session_state.pop("_browser_preset_command", None)
+        returned_page_token = browser_result.get("page_token")
+        known_page_token = st.session_state.get("_browser_page_token")
+        is_new_browser_page = bool(
+            returned_page_token and returned_page_token != known_page_token
+        )
+        if returned_page_token:
+            st.session_state["_browser_page_token"] = returned_page_token
+        if explicit_browser_command:
+            st.session_state.pop("_browser_preset_command", None)
         if not browser_result.get("ok"):
             st.session_state["_preset_notice_error"] = browser_result.get(
                 "error", "Browser storage failed."
@@ -1158,7 +1162,9 @@ if browser_command:
             st.session_state["_preset_notice_success"] = (
                 "Saved browser defaults were cleared."
             )
-        elif browser_result.get("preset"):
+        elif browser_result.get("preset") and (
+            explicit_browser_command or is_new_browser_page
+        ):
             try:
                 loaded_document = browser_result["preset"]
                 loaded_values = validate_preset_document(loaded_document)
