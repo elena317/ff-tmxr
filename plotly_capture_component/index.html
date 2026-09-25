@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <script src="https://cdn.plot.ly/plotly-4.1.1.min.js" charset="utf-8"></script>
+  <style>
+    html, body {
+      margin: 0;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      background: transparent;
+    }
+    #capture-plot {
+      position: absolute;
+      inset: 0 auto auto 0;
+      opacity: 0.01;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="capture-plot"></div>
+  <script>
+    const plotElement = document.getElementById("capture-plot");
+    let renderSequence = 0;
+
+    function send(type, extra = {}) {
+      window.parent.postMessage(
+        { isStreamlitMessage: true, type, ...extra },
+        "*"
+      );
+    }
+
+    function setValue(value) {
+      send("streamlit:setComponentValue", {
+        value,
+        dataType: "json",
+      });
+    }
+
+    async function renderAndCapture(args) {
+      const sequence = ++renderSequence;
+      const captureId = args.capture_id;
+      const width = Number(args.export_width || 1400);
+      const height = Number(args.export_height || 800);
+      const scale = Number(args.export_scale || 1);
+
+      try {
+        if (!window.Plotly) {
+          throw new Error("Plotly.js did not load in the browser.");
+        }
+
+        const figure = args.figure || {};
+        const layout = { ...(figure.layout || {}) };
+        layout.width = width;
+        layout.height = height;
+        layout.autosize = false;
+
+        plotElement.style.width = `${width}px`;
+        plotElement.style.height = `${height}px`;
+
+        await Plotly.newPlot(
+          plotElement,
+          figure.data || [],
+          layout,
+          { staticPlot: true, displayModeBar: false, responsive: false }
+        );
+        const image = await Plotly.toImage(plotElement, {
+          format: "png",
+          width,
+          height,
+          scale,
+        });
+
+        if (sequence === renderSequence) {
+          setValue({ capture_id: captureId, image });
+        }
+      } catch (error) {
+        if (sequence === renderSequence) {
+          setValue({
+            capture_id: captureId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      } finally {
+        if (window.Plotly) {
+          Plotly.purge(plotElement);
+        }
+      }
+    }
+
+    window.addEventListener("message", (event) => {
+      if (
+        event.data &&
+        event.data.isStreamlitMessage &&
+        event.data.type === "streamlit:render"
+      ) {
+        renderAndCapture(event.data.args || {});
+      }
+    });
+
+    send("streamlit:componentReady", { apiVersion: 1 });
+    send("streamlit:setFrameHeight", { height: 1 });
+  </script>
+</body>
+</html>
