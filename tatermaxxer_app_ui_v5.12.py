@@ -943,7 +943,7 @@ capture_result = plotly_capture(
     export_height=800,
     export_scale=1.25,
     capture_id=payload_capture_id,
-    key="payload_plotly_capture",
+    key="payload_plotly_capture_component",
     default=None,
     height=1,
 )
@@ -953,15 +953,15 @@ if (
     and isinstance(capture_result.get("image"), str)
     and capture_result["image"].startswith("data:image/png;base64,")
 ):
-    st.session_state["payload_plotly_capture"] = capture_result["image"]
-    st.session_state["payload_plotly_capture_id"] = payload_capture_id
-    st.session_state.pop("payload_plotly_capture_error", None)
+    st.session_state["_payload_plotly_capture_image"] = capture_result["image"]
+    st.session_state["_payload_plotly_capture_id"] = payload_capture_id
+    st.session_state.pop("_payload_plotly_capture_error", None)
 elif isinstance(capture_result, dict) and capture_result.get("error"):
-    st.session_state["payload_plotly_capture_error"] = str(capture_result["error"])
+    st.session_state["_payload_plotly_capture_error"] = str(capture_result["error"])
 
 payload_capture_ready = (
-    st.session_state.get("payload_plotly_capture_id") == payload_capture_id
-    and isinstance(st.session_state.get("payload_plotly_capture"), str)
+    st.session_state.get("_payload_plotly_capture_id") == payload_capture_id
+    and isinstance(st.session_state.get("_payload_plotly_capture_image"), str)
 )
 
 
@@ -1236,7 +1236,7 @@ def build_configuration_pdf(include_3d=True, notes=""):
 
     if include_3d:
         try:
-            image_data_url = st.session_state["payload_plotly_capture"]
+            image_data_url = st.session_state["_payload_plotly_capture_image"]
             three_d_png = base64.b64decode(image_data_url.split(",", 1)[1])
         except Exception as exc:
             three_d_note = (
@@ -1432,7 +1432,7 @@ include_3d_pdf = st.checkbox(
 )
 
 if include_3d_pdf and not payload_capture_ready:
-    capture_error = st.session_state.get("payload_plotly_capture_error")
+    capture_error = st.session_state.get("_payload_plotly_capture_error")
     if capture_error:
         st.warning(f"The browser could not prepare the 3D report image: {capture_error}")
     else:
